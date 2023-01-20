@@ -65,6 +65,6 @@ axis off
 annotation(gcf,'arrow',[0.347 0.25],[0.565 0.811],'linewidth',2);
 
 
-print(gcf,'-depsc','-r300','fig1.eps');
-print(gcf,'-dpng','-r300','fig1.png');
+print(gcf,'-depsc','-r300','fig2.eps');
+print(gcf,'-dpng','-r300','fig2.png');
 
