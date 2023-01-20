@@ -135,5 +135,6 @@ subplot(6,3,15);plot(t,d(:,2)-d11(:,2),'k','Linewidth',1.5);hold on;plot([arr,ar
 subplot(6,3,18);plot(t,d(:,3)-d11(:,3),'k','Linewidth',1.5);hold on;plot([arr,arr]*0.1,[-10000,10000],'r--','Linewidth',2);ylim([-10000,10000]);xlabel('Time (s)','Fontsize',12,'fontweight','normal');title('Zoom Noise (Z)','Fontsize',12,'fontweight','normal');xlabel('Time (s)','Fontsize',12,'fontweight','normal');set(gca,'Linewidth',1.5,'Fontsize',12,'Fontweight','normal');xlim([x1,x2]);
 
 print(gcf,'-depsc','-r300','fig14.eps');
+print(gcf,'-dpng','-r300','fig14.png');
 
 

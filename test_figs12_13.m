@@ -214,6 +214,7 @@ yc_imagesc(d1_z2,70,2);axis off;
 % yc_imagesc(d2_z2,100,2);axis off;
 
 print(gcf,'-depsc','-r300','fig12.eps');
+print(gcf,'-dpng','-r300','fig12.png');
 
 
 
@@ -279,6 +280,6 @@ dw2=(1-x0)/5.0;
 a1=axes('Parent',gcf,'Position',[0,0.93,1,dh1]);
 text(0.5,0,'Microseismic event detection','color','k','Fontsize',14,'fontweight','bold','HorizontalAlignment','center');axis off;
 print(gcf,'-depsc','-r300','fig13.eps');
-
+print(gcf,'-dpng','-r300','fig13.png');
 
 
