@@ -69,22 +69,13 @@ Using the latest version
 
 3. The scripts beginning with "test_" are runnable scripts.
 
-5. The directory [subroutines](https://github.com/chenyk1990/dl1dnoise/tree/main/subroutines) stores all the required subroutines. 
+4. The directory [subroutines](https://github.com/chenyk1990/dl1dnoise/tree/main/subroutines) stores all the required subroutines. 
 
-9. The current version is based on Matlab. Future versions will also support Python and be optimized regarding computational efficiency. 
+5. The current version is based on Matlab. Future versions may also support Python and be optimized regarding computational efficiency. 
 
+6. All figures (except for fig1, which is a schematic plot, and fig11, which is based on Madagascar and powerpoint) in the dl1dnoise paper are in the following directory for a quick look (https://github.com/chenyk1990/dl1dnoise/tree/main/gallery/). 
 
-12. All figures (except for fig1, which is a schematic plot) in the dl1dnoise paper are in the following directory for a quick look (https://github.com/chenyk1990/dl1dnoise/tree/main/gallery/). 
-
-13. The label fonts are different across different Matlab versions and platforms (Linux, Max). The figures presented in the paper are from Mac-Pro Matlab 2022b. 
-
-14. If the package is too large for downloading, the following option can be used:
-
-	svn co https://github.com/chenyk1990/dl1dnoise/trunk dl1dnoise
-	
-	svn co https://github.com/chenyk1990/dl1dnoise/trunk/raw dl1dnoise/raw
-	
-	Then, run the scripts in dl1dnoise. 
+7. The label fonts are different across different Matlab versions and platforms (Linux, Max). The figures presented in the paper are from Mac-Pro Matlab 2022b. 
 
 
 -----------
