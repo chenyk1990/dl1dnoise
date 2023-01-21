@@ -1,22 +1,35 @@
+% Script to plot Figure 14
+% BY Yangkang Che
+% 
+% Initialized: Jan, 2022
+% Revised:     Jan, 2023
+% This script takes about 1-2 minutes
+% 
+%% Please first download the MATseisdl package
+% svn co https://github.com/chenyk1990/MATseisdl/trunk MATseisdl
 
 clc;clear;close all;
+
+addpath(genpath('./MATseisdl'));
+addpath(genpath('./subroutines'));
+
 load data/real3.mat
 
 d=dd;
 
-figure;
-subplot(3,1,1);plot(dd(:,1));%E
-subplot(3,1,2);plot(dd(:,2));%N
-subplot(3,1,3);plot(dd(:,3));%Z
+% figure;
+% subplot(3,1,1);plot(dd(:,1));%E
+% subplot(3,1,2);plot(dd(:,2));%N
+% subplot(3,1,3);plot(dd(:,3));%Z
 d=d(1:10:end,:);
 d(:,1)=d(:,1:end-2);
 d(:,2)=d(:,3:end);
 d(:,3)=d(:,1:end-2);
 
-figure;
-subplot(3,1,1);plot(d(:,1));%E
-subplot(3,1,2);plot(d(:,2));%N
-subplot(3,1,3);plot(d(:,3));%Z
+% figure;
+% subplot(3,1,1);plot(d(:,1));%E
+% subplot(3,1,2);plot(d(:,2));%N
+% subplot(3,1,3);plot(d(:,3));%Z
 
 %% patch size l1*l2
 l1=64;l2=1;
@@ -35,13 +48,13 @@ D=dct;
 % DCT=kron(dct,dct);%2D DCT dictionary (64,256)
 
 %% plot the first 64 atoms
-figure;
-for ia=1:16
-    subplot(4,4,ia);plot(dct(:,ia));
-end
+% figure;
+% for ia=1:16
+%     subplot(4,4,ia);plot(dct(:,ia));
+% end
 
 %% decompose the image into patches:
-X=yc_patch(d,1,l1,1,l1/2,1);
+X=dl_patch(d,1,l1,1,l1/2,1);
 fprintf('There are %d patches\n',size(X,2));
 
 %% OMP using DCT
@@ -50,17 +63,17 @@ K=3;
 ph=0.57;
 tic
 for i2=1:nd
-    G(:,i2)=yc_omp0(D,X(:,i2),K);
+    G(:,i2)=dl_omp0(D,X(:,i2),K);
 end
 toc
 
 %further constrain it to be sparser
-G=yc_pthresh(G,'ph',ph);
+G=dl_pthresh(G,'ph',ph);
 X2=D*G;
 
 [n1,n2]=size(d);
-d2=yc_patch_inv(X2,1,n1,n2,l1,1,l1/2,1);
-figure;yc_imagesc([d,d2,d-d2]);
+d2=dl_patch_inv(X2,1,n1,n2,l1,1,l1/2,1);
+% figure;dl_imagesc([d,d2,d-d2]);
 
 % figure('units','normalized');
 % imagesc(G);colormap(jet);colorbar;caxis([-0.5,0.5]);%colorbar;
@@ -77,14 +90,14 @@ param.niter=30; %number of K-SVD iterations to perform; default: 10
 param.mode=1;   %1: sparsity; 0: error
 param.K=c2;     %number of atoms, dictionary size
 tic
-[Dksvd,Gksvd]=yc_ksvd(X,param); 
+[Dksvd,Gksvd]=dl_ksvd(X,param); 
 toc
 
 Gksvd0=Gksvd;
-Gksvd=yc_pthresh(Gksvd0,'ph',ph);
+Gksvd=dl_pthresh(Gksvd0,'ph',ph);
 X1=Dksvd*Gksvd;
 [n1,n2]=size(d);
-d1=yc_patch_inv(X1,1,n1,n2,l1,1,l1/2,1);
+d1=dl_patch_inv(X1,1,n1,n2,l1,1,l1/2,1);
 
 %% SGK
 param.T=K;      %sparsity level
@@ -93,20 +106,20 @@ param.niter=30; %number of K-SVD iterations to perform; default: 10
 param.mode=1;   %1: sparsity; 0: error
 param.K=c2;     %number of atoms, dictionary size
 tic
-[Dsgk,Gsgk]=yc_sgk(X,param); 
+[Dsgk,Gsgk]=dl_sgk(X,param); 
 toc
 Gsgk0=Gsgk;
-Gsgk=yc_pthresh(Gsgk0,'ph',ph);
+Gsgk=dl_pthresh(Gsgk0,'ph',ph);
 X11=Dsgk*Gsgk;
-d11=yc_patch_inv(X11,1,n1,n2,l1,1,l1/2,1);
+d11=dl_patch_inv(X11,1,n1,n2,l1,1,l1/2,1);
 
 %% option2 (to make the signal leakage smallest, using an non-stationary strategy)
-X2=yc_patch(d(775:end,:),1,l1,1,l1/2,1);
+X2=dl_patch(d(775:end,:),1,l1,1,l1/2,1);
 param.T=30;      %sparsity level
-[Dsgk2,Gsgk2]=yc_sgk(X2,param); 
-Gsgk2=yc_pthresh(Gsgk2,'ph',100); 
+[Dsgk2,Gsgk2]=dl_sgk(X2,param); 
+Gsgk2=dl_pthresh(Gsgk2,'ph',100); 
 X22=Dsgk2*Gsgk2;
-d11_2=yc_patch_inv(X22,1,1200-774,n2,l1,1,l1/2,1);
+d11_2=dl_patch_inv(X22,1,1200-774,n2,l1,1,l1/2,1);
 d11=[d11(1:774,:);d11_2];
 
 %% plot

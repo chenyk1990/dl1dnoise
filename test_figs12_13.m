@@ -1,11 +1,17 @@
-% Script to plot Figure 10
+% Script to plot Figures 12,13
 % BY Yangkang Chen
-% Dec, 23, 2021
+% 
+% Initialized: Jan, 2022
+% Revised:     Jan, 2023
+% This script takes about 1-2 minutes
+% 
+%% Please first download the MATseisdl package
+% svn co https://github.com/chenyk1990/MATseisdl/trunk MATseisdl
 
 clc;clear;close all;
 
-
-addpath(genpath('./subroutines/'));
+addpath(genpath('./MATseisdl'));
+addpath(genpath('./subroutines'));
 
 %% load data
 eq=zeros(2000,960);
@@ -17,16 +23,16 @@ ii=3;
 load data/real2.mat
 eq=d1(:,:);
 eq=d1;
-d_bp=yc_bandpass(d1,0.0005,0,200,6,6,0,0);%
-% d_bpfk=d_bp-yc_fk_dip(d_bp,0.02);%
+d_bp=dl_bandpass(d1,0.0005,0,200,6,6,0,0);%
+% d_bpfk=d_bp-dl_fk_dip(d_bp,0.02);%
 d_bpfk=d_bp;
 d=d_bpfk;
-figure;yc_imagesc([eq,d,eq-d]);
+% figure;dl_imagesc([eq,d,eq-d]);
 
 % load(strcat('/Users/chenyk/dasdenoising/mat_bpsomffk/eq-',num2str(ii),'.mat'));
 % load data/real11.mat
 % d=d1;
-% figure;yc_imagesc([eq,d,eq-d]);
+% figure;dl_imagesc([eq,d,eq-d]);
 
 eq=eq(:,100:800);
 d=d(:,100:800);
@@ -47,13 +53,13 @@ D=dct;
 % DCT=kron(dct,dct);%2D DCT dictionary (64,256)
 
 %% plot the first 64 atoms
-figure;
-for ia=1:16
-    subplot(4,4,ia);plot(dct(:,ia));
-end
+% figure;
+% for ia=1:16
+%     subplot(4,4,ia);plot(dct(:,ia));
+% end
 
 % decompose the image into patches:
-X=yc_patch(d,1,l1,1,l1/2,1);
+X=dl_patch(d,1,l1,1,l1/2,1);
 
 
 % OMP using DCT
@@ -62,17 +68,17 @@ K=3;
 ph=2;
 tic
 for i2=1:nd
-    G(:,i2)=yc_omp0(D,X(:,i2),K);
+    G(:,i2)=dl_omp0(D,X(:,i2),K);
 end
 toc
 
 %further constrain it to be sparser
-G=yc_pthresh(G,'ph',ph);
+G=dl_pthresh(G,'ph',ph);
 X2=D*G;
 
 [n1,n2]=size(d);
-d2=yc_patch_inv(X2,1,n1,n2,l1,1,l1/2,1);
-figure;yc_imagesc([d,d2,d-d2]);
+d2=dl_patch_inv(X2,1,n1,n2,l1,1,l1/2,1);
+% figure;dl_imagesc([d,d2,d-d2]);
 
 % figure('units','normalized');
 % imagesc(G);colormap(jet);colorbar;caxis([-0.5,0.5]);%colorbar;
@@ -89,14 +95,14 @@ figure;yc_imagesc([d,d2,d-d2]);
 % param.mode=1;   %1: sparsity; 0: error
 % param.K=c2;     %number of atoms, dictionary size
 % tic
-% [Dksvd,Gksvd]=yc_ksvd(X,param); 
+% [Dksvd,Gksvd]=dl_ksvd(X,param); 
 % toc
 % 
 % Gksvd0=Gksvd;
-% Gksvd=yc_pthresh(Gksvd0,'ph',ph);
+% Gksvd=dl_pthresh(Gksvd0,'ph',ph);
 % X1=Dksvd*Gksvd;
 % [n1,n2]=size(d);
-% d1=yc_patch_inv(X1,1,n1,n2,l1,1,l1/2,1);
+% d1=dl_patch_inv(X1,1,n1,n2,l1,1,l1/2,1);
 
 %% SGK
 param.T=K;      %sparsity level
@@ -105,28 +111,18 @@ param.niter=30; %number of K-SVD iterations to perform; default: 10
 param.mode=1;   %1: sparsity; 0: error
 param.K=c2;     %number of atoms, dictionary size
 tic
-[Dsgk,Gsgk]=yc_sgk(X,param); 
+[Dsgk,Gsgk]=dl_sgk(X,param); 
 toc
 Gsgk0=Gsgk;
-Gsgk=yc_pthresh(Gsgk0,'ph',ph);
+Gsgk=dl_pthresh(Gsgk0,'ph',ph);
 X11=Dsgk*Gsgk;
-d11=yc_patch_inv(X11,1,n1,n2,l1,1,l1/2,1);
+d11=dl_patch_inv(X11,1,n1,n2,l1,1,l1/2,1);
 
 % save fig10.mat 
 
 %%cost
 % DCT:15.16s
 % SGK:35.00s
-
-% NOs=[1,3,20,10,25,11,2];
-% labels={...                                          %P-arrival sample NO from the SEGY file
-%     'FORGE\_78-32\_iDASv3-P11\_UTC190423150554.sgy',... %24169
-%     'FORGE\_78-32\_iDASv3-P11\_UTC190423213209.sgy',... 
-%     'FORGE\_78-32\_iDASv3-P11\_UTC190426070723.sgy',... %24811
-%     'FORGE\_78-32\_iDASv3-P11\_UTC190426062208.sgy',... %26090
-%     'FORGE\_78-32\_iDASv3-P11\_UTC190426110008.sgy',... %4921
-%     'FORGE\_78-32\_iDASv3-P11\_UTC190426062553.sgy',... %8934
-%     'FORGE\_78-32\_iDASv3-P11\_UTC190423182409.sgy'};   %4210
 
 % eq=zeros(2000,960);
 [n1,n2]=size(d);
@@ -146,7 +142,7 @@ comp1=[eq,zeros(n1,ngap),d2,zeros(n1,ngap),eq-d2,zeros(n1,ngap),d11,zeros(n1,nga
 comp2=comp1;
 %% combined figure
 figure('units','normalized','Position',[0.0 0.0 0.6, 0.5],'color','w');
-yc_imagesc(comp1(:,:),98,1,x,t(:));
+dl_imagesc(comp1(:,:),98,1,x,t(:));
 ylabel('Time (s)','Fontsize',14,'fontweight','bold');
 xlabel('Channel','Fontsize',14,'fontweight','bold');
 set(gca,'Linewidth',2,'Fontsize',14,'Fontweight','bold');
@@ -172,7 +168,7 @@ annotation(gcf,'arrow',[0.71 0.68],[0.806 0.674],'linewidth',2,'color','r');
 annotation(gcf,'arrow',[0.697 0.697],[0.621 0.591],'linewidth',2,'color','g');
 annotation(gcf,'textarrow',[0.5023 0.4849],[0.7056 0.79333],'String',{'Signal leakage'},'linewidth',2,'fontsize',15,'fontweight','bold','color','g');
 
-% subplot(2,1,2);yc_imagesc(comp2(1:1000,:),98,1,x,t(1:1000));
+% subplot(2,1,2);dl_imagesc(comp2(1:1000,:),98,1,x,t(1:1000));
 % ylabel('Time (s)','Fontsize',14,'fontweight','bold');
 % xlabel('Channel','Fontsize',14,'fontweight','bold');
 % set(gca,'Linewidth',2,'Fontsize',14,'Fontweight','bold');
@@ -201,17 +197,17 @@ annotation(gcf,'textarrow',[0.5023 0.4849],[0.7056 0.79333],'String',{'Signal le
 %% add zooming framebox
 
 a1=axes('Parent',gcf,'Position',[0.287,0.38,0.149,0.3]);
-yc_imagesc(d1_z1,70,2);axis off;
+dl_imagesc(d1_z1,70,2);axis off;
 
 a1=axes('Parent',gcf,'Position',[0.600,0.38,0.149,0.3]);
-yc_imagesc(d1_z2,70,2);axis off;
+dl_imagesc(d1_z2,70,2);axis off;
 
 
 % a1=axes('Parent',gcf,'Position',[0.287,0.18,0.149,0.15]);
-% yc_imagesc(d2_z1,100,2);axis off;
+% dl_imagesc(d2_z1,100,2);axis off;
 % 
 % a1=axes('Parent',gcf,'Position',[0.600,0.18,0.149,0.15]);
-% yc_imagesc(d2_z2,100,2);axis off;
+% dl_imagesc(d2_z2,100,2);axis off;
 
 print(gcf,'-depsc','-r300','fig12.eps');
 print(gcf,'-dpng','-r300','fig12.png');

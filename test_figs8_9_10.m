@@ -1,32 +1,22 @@
-clc;clear;close all;
-%Demo for microseismic data denoising using 1D dictionary learning
-%Prepared By Yangkang Chen and Hang Wang
-%Dec, 09, 2018
-%
-% Key Reference
-% Wang, H., Q. Zhang, G. Zhang, J. Fang, and Y. Chen, 2020, Self-training and learning the waveform features of microseismic data using an adaptive dictionary, Geophysics, 85, KS51-KS61.
-%
-% For more details about dictionary learning and denoising, please refer to
-% Siahsar, M. A. N., Gholtashi, S., Kahoo, A. R., W. Chen, and Y. Chen, 2017, Data-driven multi-task sparse dictionary learning for noise attenuation of 3D seismic data, Geophysics, 82, V385-V396.
-% Siahsar, M. A. N., V. Abolghasemi, and Y. Chen, 2017, Simultaneous denoising and interpolation of 2D seismic data using data-driven non-negative dictionary learning, Signal Processing, 141, 309-321.
-% Chen, Y., 2020, Fast dictionary learning for noise attenuation of multidimensional seismic data, Geophysical Journal International, 222, 1717?1727.
-% Chen, Y., M. Zhang, M. Bai, and W. Chen, 2019, Improving the signal-to-noise ratio of seismological datasets by unsupervised machine learning, Seismological Research Letters, 90, 1552-1564.
-% Chen, Y., S. Zu, W. Chen, M. Zhang, and Z. Guan, 2020, Learning the blending spikes using sparse dictionaries, Geophysical Journal International, 222, 1846?1863. 
-% Wang, H., Q. Zhang, G. Zhang, J. Fang, and Y. Chen, 2020, Self-training and learning the waveform features of microseismic data using an adaptive dictionary, Geophysics, 85, KS51-KS61.
-% Chen, Y., S. Fomel, 2015, Random noise attenuation using local signal-and-noise orthogonalization, Geophysics, 80, WD1-WD9.
-% Chen, Y., J. Ma, and S. Fomel, 2016, Double-sparsity dictionary for seismic noise attenuation, Geophysics, 81, V17-V30.
-% Zu, S., H. Zhou, R. Wu, M. Jiang, and Y. Chen, 2019, Dictionary learning based on dip patch selection training for random noise attenuation, Geophysics, 84, V169?V183.
-% Zu, S., H. Zhou, R. Wu, and Y. Chen, 2019, Hybrid-sparsity constrained dictionary learning for iterative deblending of extremely noisy simultaneous-source data, IEEE Transactions on Geoscience and Remote Sensing, 57, 2249-2262.
-% Zhou et al., 2021, Statistics-guided dictionary learning for automatic coherent noise suppression, IEEE Transactions on Geoscience and Remote Sensing, doi: 10.1109/TGRS.2020.3039738.
-% Wang et al., 2021, Fast dictionary learning for high-dimensional seismic reconstruction, IEEE Transactions on Geoscience and Remote Sensing, 
+% Script to plot Figures 8,9,10
+% BY Yangkang Chen
+% 
+% Initialized: Jan, 2022
+% Revised:     Jan, 2023
+% This script takes about 1-2 minutes
+% 
+%% Please first download the MATseisdl package
+% svn co https://github.com/chenyk1990/MATseisdl/trunk MATseisdl
 
-% load mdl_real.mat
+clc;clear;close all;
+
+addpath(genpath('./MATseisdl'));
+addpath(genpath('./subroutines'));
 
 load data/real1.mat
 
 %%indices for a different threshold (applied on the coefficients)
 inds=[134:219,257:330,456:462,661:694];
-
 
 
 %% patch size l1*l2
@@ -53,7 +43,7 @@ end
 
 
 %% decompose the image into patches:
-X=yc_patch(d,1,l1,1,l1/2,1);
+X=dl_patch(d,1,l1,1,l1/2,1);
 
 
 %% OMP using DCT
@@ -62,17 +52,17 @@ K=3;
 ph=0.5;
 tic
 for i2=1:nd
-    G(:,i2)=yc_omp0(D,X(:,i2),K);
+    G(:,i2)=dl_omp0(D,X(:,i2),K);
 end
 toc
 
 %further constrain it to be sparser
-G=yc_pthresh(G,'ph',ph);
+G=dl_pthresh(G,'ph',ph);
 X2=D*G;
 
 [n1,n2]=size(d);
-d2=yc_patch_inv(X2,1,n1,n2,l1,1,l1/2,1);
-figure;yc_imagesc([d,d2,d-d2]);
+d2=dl_patch_inv(X2,1,n1,n2,l1,1,l1/2,1);
+% figure;dl_imagesc([d,d2,d-d2]);
 
 % figure('units','normalized');
 % imagesc(G);colormap(jet);colorbar;caxis([-0.5,0.5]);%colorbar;
@@ -89,14 +79,14 @@ param.niter=30; %number of K-SVD iterations to perform; default: 10
 param.mode=1;   %1: sparsity; 0: error
 param.K=c2;     %number of atoms, dictionary size
 tic
-[Dksvd,Gksvd]=yc_ksvd(X,param); 
+[Dksvd,Gksvd]=dl_ksvd(X,param); 
 toc
 
 Gksvd0=Gksvd;
-Gksvd=yc_pthresh(Gksvd0,'ph',ph);
+Gksvd=dl_pthresh(Gksvd0,'ph',ph);
 X1=Dksvd*Gksvd;
 [n1,n2]=size(d);
-d1=yc_patch_inv(X1,1,n1,n2,l1,1,l1/2,1);
+d1=dl_patch_inv(X1,1,n1,n2,l1,1,l1/2,1);
 
 %% SGK
 param.T=K;      %sparsity level
@@ -105,232 +95,228 @@ param.niter=30; %number of K-SVD iterations to perform; default: 10
 param.mode=1;   %1: sparsity; 0: error
 param.K=c2;     %number of atoms, dictionary size
 tic
-[Dsgk,Gsgk]=yc_sgk(X,param); 
+[Dsgk,Gsgk]=dl_sgk(X,param); 
 toc
 Gsgk0=Gsgk;
-Gsgk=yc_pthresh(Gsgk0,'ph',ph);
+Gsgk=dl_pthresh(Gsgk0,'ph',ph);
 X11=Dsgk*Gsgk;
-d11=yc_patch_inv(X11,1,n1,n2,l1,1,l1/2,1);
+d11=dl_patch_inv(X11,1,n1,n2,l1,1,l1/2,1);
 
-figure('units','normalized','Position',[0.2 0.4 1 0.8]);
-for ia=1:64
-    subplot(8,8,ia);plot([1:l1],D(:,ia),'b','linewidth',2);
-    
-    if ia==1
-        ylim([-0.5,0.5]);
-    end
-    set(gca,'Linewidth',2.0,'Fontsize',10);
-    ytickformat('%.1f');
-    if ismember(ia,1:8:64)
-        ylabel('Amplitude','Fontsize',10);
-    else
-        set(gca,'yticklabel',[]);
-        
-    end
-    
-    if ismember(ia,57:64)
-        xlabel('Sample NO','Fontsize',10);
-    else
-        set(gca,'xticklabel',[]);
-    end
-    
-    xlim([1,l1]);
-end
+% figure('units','normalized','Position',[0.2 0.4 1 0.8]);
+% for ia=1:64
+%     subplot(8,8,ia);plot([1:l1],D(:,ia),'b','linewidth',2);
+%     
+%     if ia==1
+%         ylim([-0.5,0.5]);
+%     end
+%     set(gca,'Linewidth',2.0,'Fontsize',10);
+%     ytickformat('%.1f');
+%     if ismember(ia,1:8:64)
+%         ylabel('Amplitude','Fontsize',10);
+%     else
+%         set(gca,'yticklabel',[]);
+%         
+%     end
+%     
+%     if ismember(ia,57:64)
+%         xlabel('Sample NO','Fontsize',10);
+%     else
+%         set(gca,'xticklabel',[]);
+%     end
+%     
+%     xlim([1,l1]);
+% end
 % print(gcf,'-depsc','-r300','real_atom0.eps');
 
-figure('units','normalized','Position',[0.2 0.4 1 0.8]);
-for ia=1:64
-    subplot(8,8,ia);plot([1:l1],Dksvd(:,ia),'b','linewidth',2);
-    
-    if ia==1
-        ylim([-0.5,0.5]);
-    end
-        if ismember(ia,[12,13,14,18,53,54,57,58])
-           subplot(8,8,ia);plot([1:l1],Dksvd(:,ia),'r','linewidth',2);
-        end
-    set(gca,'Linewidth',2.0,'Fontsize',10);
-    ytickformat('%.1f');
-    if ismember(ia,1:8:64)
-        ylabel('Amplitude','Fontsize',10);
-    else
-        set(gca,'yticklabel',[]);
-        
-    end
-    
-    if ismember(ia,57:64)
-        xlabel('Sample NO','Fontsize',10);
-    else
-        set(gca,'xticklabel',[]);
-    end
-    
-    xlim([1,l1]);
-end
+% figure('units','normalized','Position',[0.2 0.4 1 0.8]);
+% for ia=1:64
+%     subplot(8,8,ia);plot([1:l1],Dksvd(:,ia),'b','linewidth',2);
+%     
+%     if ia==1
+%         ylim([-0.5,0.5]);
+%     end
+%         if ismember(ia,[12,13,14,18,53,54,57,58])
+%            subplot(8,8,ia);plot([1:l1],Dksvd(:,ia),'r','linewidth',2);
+%         end
+%     set(gca,'Linewidth',2.0,'Fontsize',10);
+%     ytickformat('%.1f');
+%     if ismember(ia,1:8:64)
+%         ylabel('Amplitude','Fontsize',10);
+%     else
+%         set(gca,'yticklabel',[]);
+%         
+%     end
+%     
+%     if ismember(ia,57:64)
+%         xlabel('Sample NO','Fontsize',10);
+%     else
+%         set(gca,'xticklabel',[]);
+%     end
+%     
+%     xlim([1,l1]);
+% end
 % print(gcf,'-depsc','-r300','real_atom1.eps');
 
-figure('units','normalized','Position',[0.2 0.4 1 0.8]);
-for ia=1:64
-    subplot(8,8,ia);plot([1:l1],Dsgk(:,ia),'b','linewidth',2);
-    
-    if ia==1
-        ylim([-0.5,0.5]);
-    end
-        if ismember(ia,[6,7,8,9,10,11,12,13,14,32,47,52,54,55])
-           subplot(8,8,ia);plot([1:l1],Dsgk(:,ia),'r','linewidth',2);
-        end
-    set(gca,'Linewidth',2.0,'Fontsize',10);
-    ytickformat('%.1f');
-    if ismember(ia,1:8:64)
-        ylabel('Amplitude','Fontsize',10);
-    else
-        set(gca,'yticklabel',[]);
-        
-    end
-    
-    if ismember(ia,57:64)
-        xlabel('Sample NO','Fontsize',10);
-    else
-        set(gca,'xticklabel',[]);
-    end
-    
-    xlim([1,l1]);
-end
+% figure('units','normalized','Position',[0.2 0.4 1 0.8]);
+% for ia=1:64
+%     subplot(8,8,ia);plot([1:l1],Dsgk(:,ia),'b','linewidth',2);
+%     
+%     if ia==1
+%         ylim([-0.5,0.5]);
+%     end
+%         if ismember(ia,[6,7,8,9,10,11,12,13,14,32,47,52,54,55])
+%            subplot(8,8,ia);plot([1:l1],Dsgk(:,ia),'r','linewidth',2);
+%         end
+%     set(gca,'Linewidth',2.0,'Fontsize',10);
+%     ytickformat('%.1f');
+%     if ismember(ia,1:8:64)
+%         ylabel('Amplitude','Fontsize',10);
+%     else
+%         set(gca,'yticklabel',[]);
+%         
+%     end
+%     
+%     if ismember(ia,57:64)
+%         xlabel('Sample NO','Fontsize',10);
+%     else
+%         set(gca,'xticklabel',[]);
+%     end
+%     
+%     xlim([1,l1]);
+% end
 % print(gcf,'-depsc','-r300','real_atom2.eps');
-
-
-
 
 
 %% a secondary QC of the results
 %DCT
-XX=yc_patch(d(:,inds),1,l1,1,l1/2,1);%for the special group of traces
+XX=dl_patch(d(:,inds),1,l1,1,l1/2,1);%for the special group of traces
 ph2=1.0;
 ndd=size(XX,2);
 for i2=1:ndd
-    GG(:,i2)=yc_omp0(D,XX(:,i2),K);
+    GG(:,i2)=dl_omp0(D,XX(:,i2),K);
 end
-GG=yc_pthresh(GG,'ph',ph2);
+GG=dl_pthresh(GG,'ph',ph2);
 XX2=D*GG;
 [nn1,nn2]=size(d(:,inds));
-dd2=yc_patch_inv(XX2,1,nn1,nn2,l1,1,l1/2,1);
+dd2=dl_patch_inv(XX2,1,nn1,nn2,l1,1,l1/2,1);
 d2(:,inds)=dd2;
 %KSVD
 for i2=1:ndd
-    GGksvd(:,i2)=yc_omp0(Dksvd,XX(:,i2),K);
+    GGksvd(:,i2)=dl_omp0(Dksvd,XX(:,i2),K);
 end
-GGksvd=yc_pthresh(GGksvd,'ph',ph2);
+GGksvd=dl_pthresh(GGksvd,'ph',ph2);
 XX1=Dksvd*GGksvd;
-dd1=yc_patch_inv(XX1,1,nn1,nn2,l1,1,l1/2,1);
+dd1=dl_patch_inv(XX1,1,nn1,nn2,l1,1,l1/2,1);
 d1(:,inds)=dd1;
 %SGK
 for i2=1:ndd
-    GGsgk(:,i2)=yc_omp0(Dsgk,XX(:,i2),K);
+    GGsgk(:,i2)=dl_omp0(Dsgk,XX(:,i2),K);
 end
-GGsgk=yc_pthresh(GGsgk,'ph',ph2);
+GGsgk=dl_pthresh(GGsgk,'ph',ph2);
 XX11=Dsgk*GGsgk;
-dd11=yc_patch_inv(XX11,1,nn1,nn2,l1,1,l1/2,1);
+dd11=dl_patch_inv(XX11,1,nn1,nn2,l1,1,l1/2,1);
 d11(:,inds)=dd11;
 %% a secondary QC of the results
 
 
-figure;yc_imagesc([d,d1,d-d1]);
-figure;yc_imagesc([d,d11,d-d11]);
-figure;yc_imagesc([d,d2,d-d2]);
+% figure;dl_imagesc([d,d1,d-d1]);
+% figure;dl_imagesc([d,d11,d-d11]);
+% figure;dl_imagesc([d,d2,d-d2]);
 
 dn=d;
-figure('units','normalized','Position',[0.2 0.4 0.55, 1],'color','w');
-subplot(3,1,1);yc_imagesc([dn,d2,dn-d2]);title('DCT,  (4.48 s), l1=64, K=3, ph=0.5');
-subplot(3,1,2);yc_imagesc([dn,d1,dn-d1]);title('KSVD,  (169.71 s), l1=64, K=3, ph=0.5');
-subplot(3,1,3);yc_imagesc([dn,d11,dn-d11]);title('SGK, (14.00 s), l1=64, K=3, ph=0.5');
+% figure('units','normalized','Position',[0.2 0.4 0.55, 1],'color','w');
+% subplot(3,1,1);dl_imagesc([dn,d2,dn-d2]);title('DCT,  (4.48 s), l1=64, K=3, ph=0.5');
+% subplot(3,1,2);dl_imagesc([dn,d1,dn-d1]);title('KSVD,  (169.71 s), l1=64, K=3, ph=0.5');
+% subplot(3,1,3);dl_imagesc([dn,d11,dn-d11]);title('SGK, (14.00 s), l1=64, K=3, ph=0.5');
 % print(gcf,'-depsc','-r300','fig8.eps');
 
 % save test_fig8.mat d d1 d11 d2
 
-figure;
-subplot(2,1,1);plot(d(:,1));
-subplot(2,1,2);plot(d1(:,1));
-
-ix=800;
-figure;
-subplot(2,1,1);plot(d(:,ix));
-subplot(2,1,2);plot(d1(:,ix));
-
-ix=400;
-figure;
-subplot(3,1,1);plot(d(:,ix));
-subplot(3,1,2);plot(d1(:,ix));
-subplot(3,1,3);plot(d2(:,ix));
-
-ix=900;
-figure;
-subplot(3,1,1);plot(d(:,ix));
-subplot(3,1,2);plot(d1(:,ix));
-subplot(3,1,3);plot(d2(:,ix));
-
-ix=910;
-figure;
-subplot(4,1,1);plot(d(:,ix));ylim([-999,1200]);title('Noisy');
-subplot(4,1,2);plot(d1(:,ix));ylim([-999,1200]);title('KSVD');
-subplot(4,1,3);plot(d11(:,ix));ylim([-999,1200]);title('SGK');
-subplot(4,1,4);plot(d2(:,ix));ylim([-999,1200]);title('DCT');
+% figure;
+% subplot(2,1,1);plot(d(:,1));
+% subplot(2,1,2);plot(d1(:,1));
+% 
+% ix=800;
+% figure;
+% subplot(2,1,1);plot(d(:,ix));
+% subplot(2,1,2);plot(d1(:,ix));
+% 
+% ix=400;
+% figure;
+% subplot(3,1,1);plot(d(:,ix));
+% subplot(3,1,2);plot(d1(:,ix));
+% subplot(3,1,3);plot(d2(:,ix));
+% 
+% ix=900;
+% figure;
+% subplot(3,1,1);plot(d(:,ix));
+% subplot(3,1,2);plot(d1(:,ix));
+% subplot(3,1,3);plot(d2(:,ix));
+% 
+% ix=910;
+% figure;
+% subplot(4,1,1);plot(d(:,ix));ylim([-999,1200]);title('Noisy');
+% subplot(4,1,2);plot(d1(:,ix));ylim([-999,1200]);title('KSVD');
+% subplot(4,1,3);plot(d11(:,ix));ylim([-999,1200]);title('SGK');
+% subplot(4,1,4);plot(d2(:,ix));ylim([-999,1200]);title('DCT');
 % print(gcf,'-depsc','-r300','fig88.eps');
-
 
 
 t=[0:1000]*0.002;
 x=1:918;
 figure('units','normalized','Position',[0.2 0.4 0.8, 1],'color','w');
-subplot(3,3,2);yc_imagesc([dn],2000,2,x,t);ylabel('Time (s)','Fontsize',12,'fontweight','normal');set(gca,'Linewidth',2,'Fontsize',12,'Fontweight','normal');
+subplot(3,3,2);dl_imagesc([dn],2000,2,x,t);ylabel('Time (s)','Fontsize',12,'fontweight','normal');set(gca,'Linewidth',2,'Fontsize',12,'Fontweight','normal');
 text(-120,-0.15,'(a)','color','k','Fontsize',16,'fontweight','bold','HorizontalAlignment','center');
 title('Raw data','Fontsize',12,'fontweight','normal');
-fp1=yc_ap2fp([580,0.3]);fp2=yc_ap2fp([625,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
-fp1=yc_ap2fp([690,0.3]);fp2=yc_ap2fp([735,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
-fp1=yc_ap2fp([785,0.25]);fp2=yc_ap2fp([835,0.45]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([580,0.3]);fp2=dl_ap2fp([625,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([690,0.3]);fp2=dl_ap2fp([735,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([785,0.25]);fp2=dl_ap2fp([835,0.45]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
 
-subplot(3,3,4);yc_imagesc(d2,2000,2,x,t);ylabel('Time (s)','Fontsize',12,'fontweight','normal');set(gca,'Linewidth',2,'Fontsize',12,'Fontweight','normal');
+subplot(3,3,4);dl_imagesc(d2,2000,2,x,t);ylabel('Time (s)','Fontsize',12,'fontweight','normal');set(gca,'Linewidth',2,'Fontsize',12,'Fontweight','normal');
 text(-120,-0.15,'(b)','color','k','Fontsize',16,'fontweight','bold','HorizontalAlignment','center');
 title('Denoised (DCT)','Fontsize',12,'fontweight','normal');
 text(50,1.75,{'Cost=4.48 s'},'color','k','Fontsize',12,'fontweight','normal','HorizontalAlignment','left');
-fp1=yc_ap2fp([580,0.3]);fp2=yc_ap2fp([625,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
-fp1=yc_ap2fp([690,0.3]);fp2=yc_ap2fp([735,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
-fp1=yc_ap2fp([785,0.25]);fp2=yc_ap2fp([835,0.45]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([580,0.3]);fp2=dl_ap2fp([625,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([690,0.3]);fp2=dl_ap2fp([735,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([785,0.25]);fp2=dl_ap2fp([835,0.45]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
 
-subplot(3,3,5);yc_imagesc(d1,2000,2,x,t);set(gca,'Linewidth',2,'Fontsize',12,'Fontweight','normal');
+subplot(3,3,5);dl_imagesc(d1,2000,2,x,t);set(gca,'Linewidth',2,'Fontsize',12,'Fontweight','normal');
 text(-120,-0.15,'(c)','color','k','Fontsize',16,'fontweight','bold','HorizontalAlignment','center');
 title('Denoised (KSVD)','Fontsize',12,'fontweight','normal');
 text(50,1.75,{'Cost=169.71 s'},'color','k','Fontsize',12,'fontweight','normal','HorizontalAlignment','left');
-fp1=yc_ap2fp([580,0.3]);fp2=yc_ap2fp([625,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
-fp1=yc_ap2fp([690,0.3]);fp2=yc_ap2fp([735,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
-fp1=yc_ap2fp([785,0.25]);fp2=yc_ap2fp([835,0.45]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([580,0.3]);fp2=dl_ap2fp([625,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([690,0.3]);fp2=dl_ap2fp([735,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([785,0.25]);fp2=dl_ap2fp([835,0.45]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
 
-subplot(3,3,6);yc_imagesc(d11,2000,2,x,t);set(gca,'Linewidth',2,'Fontsize',12,'Fontweight','normal');
+subplot(3,3,6);dl_imagesc(d11,2000,2,x,t);set(gca,'Linewidth',2,'Fontsize',12,'Fontweight','normal');
 text(-120,-0.15,'(d)','color','k','Fontsize',16,'fontweight','bold','HorizontalAlignment','center');
 title('Denoised (SGK)','Fontsize',12,'fontweight','normal');
 text(50,1.75,{'Cost=14.00 s'},'color','k','Fontsize',12,'fontweight','normal','HorizontalAlignment','left');
-fp1=yc_ap2fp([580,0.3]);fp2=yc_ap2fp([625,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
-fp1=yc_ap2fp([690,0.3]);fp2=yc_ap2fp([735,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
-fp1=yc_ap2fp([785,0.25]);fp2=yc_ap2fp([835,0.45]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([580,0.3]);fp2=dl_ap2fp([625,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([690,0.3]);fp2=dl_ap2fp([735,0.5]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([785,0.25]);fp2=dl_ap2fp([835,0.45]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
 
-subplot(3,3,7);yc_imagesc(dn-d2,2000,2,x,t);ylabel('Time (s)','Fontsize',12,'fontweight','normal');xlabel('Channel','Fontsize',12,'fontweight','normal');set(gca,'Linewidth',2,'Fontsize',12,'Fontweight','normal');
+subplot(3,3,7);dl_imagesc(dn-d2,2000,2,x,t);ylabel('Time (s)','Fontsize',12,'fontweight','normal');xlabel('Channel','Fontsize',12,'fontweight','normal');set(gca,'Linewidth',2,'Fontsize',12,'Fontweight','normal');
 text(-120,-0.15,'(e)','color','k','Fontsize',16,'fontweight','bold','HorizontalAlignment','center');
 title('Noise (DCT)','Fontsize',12,'fontweight','normal');
-fp1=yc_ap2fp([40,0.3]);fp2=yc_ap2fp([52,0.57]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
-fp1=yc_ap2fp([560,0.40]);fp2=yc_ap2fp([580,0.65]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
-fp1=yc_ap2fp([785,0.25]);fp2=yc_ap2fp([850,0.55]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([40,0.3]);fp2=dl_ap2fp([52,0.57]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([560,0.40]);fp2=dl_ap2fp([580,0.65]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([785,0.25]);fp2=dl_ap2fp([850,0.55]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
 
-subplot(3,3,8);yc_imagesc(dn-d1,2000,2,x,t);xlabel('Channel','Fontsize',12,'fontweight','normal');set(gca,'Linewidth',2,'Fontsize',12,'Fontweight','normal');
+subplot(3,3,8);dl_imagesc(dn-d1,2000,2,x,t);xlabel('Channel','Fontsize',12,'fontweight','normal');set(gca,'Linewidth',2,'Fontsize',12,'Fontweight','normal');
 text(-120,-0.15,'(f)','color','k','Fontsize',16,'fontweight','bold','HorizontalAlignment','center');
 title('Noise (KSVD)','Fontsize',12,'fontweight','normal');
-fp1=yc_ap2fp([40,0.3]);fp2=yc_ap2fp([52,0.57]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
-fp1=yc_ap2fp([560,0.40]);fp2=yc_ap2fp([580,0.65]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
-fp1=yc_ap2fp([785,0.25]);fp2=yc_ap2fp([850,0.55]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([40,0.3]);fp2=dl_ap2fp([52,0.57]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([560,0.40]);fp2=dl_ap2fp([580,0.65]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([785,0.25]);fp2=dl_ap2fp([850,0.55]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
 
 
-subplot(3,3,9);yc_imagesc(dn-d11,2000,2,x,t);xlabel('Channel','Fontsize',12,'fontweight','normal');set(gca,'Linewidth',2,'Fontsize',12,'Fontweight','normal');
+subplot(3,3,9);dl_imagesc(dn-d11,2000,2,x,t);xlabel('Channel','Fontsize',12,'fontweight','normal');set(gca,'Linewidth',2,'Fontsize',12,'Fontweight','normal');
 text(-120,-0.15,'(g)','color','k','Fontsize',16,'fontweight','bold','HorizontalAlignment','center');
 title('Noise (SGK)','Fontsize',12,'fontweight','normal');
-fp1=yc_ap2fp([40,0.3]);fp2=yc_ap2fp([52,0.57]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
-fp1=yc_ap2fp([560,0.40]);fp2=yc_ap2fp([580,0.65]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
-fp1=yc_ap2fp([785,0.25]);fp2=yc_ap2fp([850,0.55]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([40,0.3]);fp2=dl_ap2fp([52,0.57]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([560,0.40]);fp2=dl_ap2fp([580,0.65]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
+fp1=dl_ap2fp([785,0.25]);fp2=dl_ap2fp([850,0.55]);annotation('arrow',[fp1(1),fp2(1)],[fp1(2),fp2(2)],'linewidth',2,'color','r');
 
 print(gcf,'-depsc','-r300','fig8.eps');
 print(gcf,'-dpng','-r300','fig8.png');
@@ -459,9 +445,6 @@ print(gcf,'-dpng','-r300','fig9.png');
 
 
 %% fig10
-
-
-
 figure('units','normalized','Position',[0.2 0.4 1 0.8]);
 for ia=1:64
     subplot(8,8,ia);plot([1:l1],D(:,ia),'k','linewidth',2);

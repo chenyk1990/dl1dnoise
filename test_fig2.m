@@ -1,4 +1,17 @@
+% Script to plot Figure 2
+% BY Yangkang Chen
+% 
+% Initialized: Jan, 2022
+% Revised:     Jan, 2023
+% This script takes about 1-2 minutes
+% 
+%% Please first download the MATseisdl package
+% svn co https://github.com/chenyk1990/MATseisdl/trunk MATseisdl
+
 clc;clear;close all;
+
+addpath(genpath('./MATseisdl'))
+addpath(genpath('./subroutines'))
 
 %
 %% point 

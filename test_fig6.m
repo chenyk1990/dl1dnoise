@@ -1,7 +1,18 @@
+% Script to plot Figure 6
+% BY Yangkang Chen
+% 
+% Initialized: Jan, 2022
+% Revised:     Jan, 2023
+% This script takes about 1-2 minutes
+% 
+%% Please first download the MATseisdl package
+% svn co https://github.com/chenyk1990/MATseisdl/trunk MATseisdl
+
 clc;clear;close all;
 
+addpath(genpath('./MATseisdl'));
+addpath(genpath('./subroutines'));
 
-addpath(genpath('./subroutines'))
 
 load('data/syn1.mat');
 % original script and datapath
@@ -42,7 +53,7 @@ D=dct;
 % DCT=kron(dct,dct);%2D DCT dictionary (64,256)
 
 %% decompose the image into patches:
-X=yc_patch(dn,1,l1,1,l1/2,1);
+X=dl_patch(dn,1,l1,1,l1/2,1);
 
 
 %% OMP using DCT
@@ -51,16 +62,16 @@ K=3;
 ph=1;
 tic
 for i2=1:nd
-    G(:,i2)=yc_omp0(D,X(:,i2),K);
+    G(:,i2)=dl_omp0(D,X(:,i2),K);
 end
 toc
 
 %further constrain it to be sparser
-G=yc_pthresh(G,'ph',ph);
+G=dl_pthresh(G,'ph',ph);
 X2=D*G;
 
 [n1,n2]=size(dn);
-d2=yc_patch_inv(X2,1,n1,n2,l1,1,l1/2,1);
+d2=dl_patch_inv(X2,1,n1,n2,l1,1,l1/2,1);
 
 %% KSVD
 param.T=K;      %sparsity level
@@ -69,12 +80,12 @@ param.niter=30; %number of K-SVD iterations to perform; default: 10
 param.mode=1;   %1: sparsity; 0: error
 param.K=c2;     %number of atoms, dictionary size
 tic
-[Dksvd,Gksvd]=yc_ksvd(X,param);
+[Dksvd,Gksvd]=dl_ksvd(X,param);
 toc
 Gksvd0=Gksvd;
-Gksvd=yc_pthresh(Gksvd0,'ph',ph);
+Gksvd=dl_pthresh(Gksvd0,'ph',ph);
 X1=Dksvd*Gksvd;
-d1=yc_patch_inv(X1,1,n1,n2,l1,1,l1/2,1);
+d1=dl_patch_inv(X1,1,n1,n2,l1,1,l1/2,1);
 
 %% SGK
 param.T=K;      %sparsity level
@@ -83,98 +94,98 @@ param.niter=30; %number of K-SVD iterations to perform; default: 10
 param.mode=1;   %1: sparsity; 0: error
 param.K=c2;     %number of atoms, dictionary size
 tic
-[Dsgk,Gsgk]=yc_sgk(X,param);
+[Dsgk,Gsgk]=dl_sgk(X,param);
 toc
 Gsgk0=Gsgk;
-Gsgk=yc_pthresh(Gsgk0,'ph',ph);
+Gsgk=dl_pthresh(Gsgk0,'ph',ph);
 X11=Dsgk*Gsgk;
-d11=yc_patch_inv(X11,1,n1,n2,l1,1,l1/2,1);
+d11=dl_patch_inv(X11,1,n1,n2,l1,1,l1/2,1);
 
-figure('units','normalized','Position',[0.2 0.4 1 0.8]);
-for ia=1:64
-    subplot(8,8,ia);plot([1:l1],D(:,ia),'k','linewidth',2);
-
-    if ia==1
-        ylim([-0.5,0.5]);
-    end
-    set(gca,'Linewidth',2.0,'Fontsize',10);
-    ytickformat('%.1f');
-    if ismember(ia,1:8:64)
-        ylabel('Amplitude','Fontsize',10);
-    else
-        set(gca,'yticklabel',[]);
-
-    end
-
-    if ismember(ia,57:64)
-        xlabel('Sample NO','Fontsize',10);
-    else
-        set(gca,'xticklabel',[]);
-    end
-    axis off;
-    xlim([1,l1]);
-end
-annotation(gcf,'rectangle',[0.126 0.101 0.782 0.834],'linewidth',2);
+% figure('units','normalized','Position',[0.2 0.4 1 0.8]);
+% for ia=1:64
+%     subplot(8,8,ia);plot([1:l1],D(:,ia),'k','linewidth',2);
+% 
+%     if ia==1
+%         ylim([-0.5,0.5]);
+%     end
+%     set(gca,'Linewidth',2.0,'Fontsize',10);
+%     ytickformat('%.1f');
+%     if ismember(ia,1:8:64)
+%         ylabel('Amplitude','Fontsize',10);
+%     else
+%         set(gca,'yticklabel',[]);
+% 
+%     end
+% 
+%     if ismember(ia,57:64)
+%         xlabel('Sample NO','Fontsize',10);
+%     else
+%         set(gca,'xticklabel',[]);
+%     end
+%     axis off;
+%     xlim([1,l1]);
+% end
+% annotation(gcf,'rectangle',[0.126 0.101 0.782 0.834],'linewidth',2);
 % print(gcf,'-depsc','-r300','syn1_atom0_new.eps');
 
-figure('units','normalized','Position',[0.2 0.4 1 0.8]);
-for ia=1:64
-    subplot(8,8,ia);plot([1:l1],Dksvd(:,ia),'k','linewidth',2);
-
-    if ia==1
-        ylim([-0.5,0.5]);
-    end
-    if ismember(ia,[1,2,3,4,5,6,7,8,9,10,11,12,33])
-        subplot(8,8,ia);plot([1:l1],Dksvd(:,ia),'r','linewidth',2);
-    end
-    set(gca,'Linewidth',2.0,'Fontsize',10);
-    ytickformat('%.1f');
-    if ismember(ia,1:8:64)
-        ylabel('Amplitude','Fontsize',10);
-    else
-        set(gca,'yticklabel',[]);
-
-    end
-
-    if ismember(ia,57:64)
-        xlabel('Sample NO','Fontsize',10);
-    else
-        set(gca,'xticklabel',[]);
-    end
-    axis off;
-    xlim([1,l1]);
-end
-annotation(gcf,'rectangle',[0.126 0.101 0.782 0.834],'linewidth',2);
+% figure('units','normalized','Position',[0.2 0.4 1 0.8]);
+% for ia=1:64
+%     subplot(8,8,ia);plot([1:l1],Dksvd(:,ia),'k','linewidth',2);
+% 
+%     if ia==1
+%         ylim([-0.5,0.5]);
+%     end
+%     if ismember(ia,[1,2,3,4,5,6,7,8,9,10,11,12,33])
+%         subplot(8,8,ia);plot([1:l1],Dksvd(:,ia),'r','linewidth',2);
+%     end
+%     set(gca,'Linewidth',2.0,'Fontsize',10);
+%     ytickformat('%.1f');
+%     if ismember(ia,1:8:64)
+%         ylabel('Amplitude','Fontsize',10);
+%     else
+%         set(gca,'yticklabel',[]);
+% 
+%     end
+% 
+%     if ismember(ia,57:64)
+%         xlabel('Sample NO','Fontsize',10);
+%     else
+%         set(gca,'xticklabel',[]);
+%     end
+%     axis off;
+%     xlim([1,l1]);
+% end
+% annotation(gcf,'rectangle',[0.126 0.101 0.782 0.834],'linewidth',2);
 % print(gcf,'-depsc','-r300','syn1_atom1_new.eps');
 
-figure('units','normalized','Position',[0.2 0.4 1 0.8]);
-for ia=1:64
-    subplot(8,8,ia);plot([1:l1],Dsgk(:,ia),'k','linewidth',2);
-
-    if ia==1
-        ylim([-0.5,0.5]);
-    end
-    if ismember(ia,[4,5,6,7,10,11,30,44,59])
-        subplot(8,8,ia);plot([1:l1],Dsgk(:,ia),'r','linewidth',2);
-    end
-    set(gca,'Linewidth',2.0,'Fontsize',10);
-    ytickformat('%.1f');
-    if ismember(ia,1:8:64)
-        ylabel('Amplitude','Fontsize',10);
-    else
-        set(gca,'yticklabel',[]);
-
-    end
-
-    if ismember(ia,57:64)
-        xlabel('Sample NO','Fontsize',10);
-    else
-        set(gca,'xticklabel',[]);
-    end
-    axis off
-    xlim([1,l1]);
-end
-annotation(gcf,'rectangle',[0.126 0.101 0.782 0.834],'linewidth',2);
+% figure('units','normalized','Position',[0.2 0.4 1 0.8]);
+% for ia=1:64
+%     subplot(8,8,ia);plot([1:l1],Dsgk(:,ia),'k','linewidth',2);
+% 
+%     if ia==1
+%         ylim([-0.5,0.5]);
+%     end
+%     if ismember(ia,[4,5,6,7,10,11,30,44,59])
+%         subplot(8,8,ia);plot([1:l1],Dsgk(:,ia),'r','linewidth',2);
+%     end
+%     set(gca,'Linewidth',2.0,'Fontsize',10);
+%     ytickformat('%.1f');
+%     if ismember(ia,1:8:64)
+%         ylabel('Amplitude','Fontsize',10);
+%     else
+%         set(gca,'yticklabel',[]);
+% 
+%     end
+% 
+%     if ismember(ia,57:64)
+%         xlabel('Sample NO','Fontsize',10);
+%     else
+%         set(gca,'xticklabel',[]);
+%     end
+%     axis off
+%     xlim([1,l1]);
+% end
+% annotation(gcf,'rectangle',[0.126 0.101 0.782 0.834],'linewidth',2);
 % print(gcf,'-depsc','-r300','syn1_atom2_new.eps');
 
 D1=D;
@@ -237,7 +248,7 @@ D=dct;
 % end
 
 %% decompose the image into patches:
-X=yc_patch(dn,1,l1,1,l1/2,1);
+X=dl_patch(dn,1,l1,1,l1/2,1);
 
 
 %% OMP using DCT
@@ -246,16 +257,16 @@ K=3;%sparsity level
 ph=1;
 tic
 for i2=1:nd
-    G(:,i2)=yc_omp0(D,X(:,i2),K);
+    G(:,i2)=dl_omp0(D,X(:,i2),K);
 end
 toc
 
 %further constrain it to be sparser
-G=yc_pthresh(G,'ph',ph);
+G=dl_pthresh(G,'ph',ph);
 X2=D*G;
 
 [n1,n2]=size(dn);
-d2=yc_patch_inv(X2,1,n1,n2,l1,1,l1/2,1);
+d2=dl_patch_inv(X2,1,n1,n2,l1,1,l1/2,1);
 
 %% KSVD
 param.T=K;      %sparsity level
@@ -264,12 +275,12 @@ param.niter=30; %number of K-SVD iterations to perform; default: 10
 param.mode=1;   %1: sparsity; 0: error
 param.K=c2;     %number of atoms, dictionary size
 tic
-[Dksvd,Gksvd]=yc_ksvd(X,param);
+[Dksvd,Gksvd]=dl_ksvd(X,param);
 toc
 Gksvd0=Gksvd;
-Gksvd=yc_pthresh(Gksvd0,'ph',ph);
+Gksvd=dl_pthresh(Gksvd0,'ph',ph);
 X1=Dksvd*Gksvd;
-d1=yc_patch_inv(X1,1,n1,n2,l1,1,l1/2,1);
+d1=dl_patch_inv(X1,1,n1,n2,l1,1,l1/2,1);
 
 %% SGK
 param.T=K;      %sparsity level
@@ -278,102 +289,101 @@ param.niter=30; %number of K-SVD iterations to perform; default: 10
 param.mode=1;   %1: sparsity; 0: error
 param.K=c2;     %number of atoms, dictionary size
 tic
-[Dsgk,Gsgk]=yc_sgk(X,param);
+[Dsgk,Gsgk]=dl_sgk(X,param);
 toc
 Gsgk0=Gsgk;
-Gsgk=yc_pthresh(Gsgk0,'ph',ph);
+Gsgk=dl_pthresh(Gsgk0,'ph',ph);
 X11=Dsgk*Gsgk;
-d11=yc_patch_inv(X11,1,n1,n2,l1,1,l1/2,1);
+d11=dl_patch_inv(X11,1,n1,n2,l1,1,l1/2,1);
 
-figure('units','normalized','Position',[0.2 0.4 1 0.8],'color','w');
-for ia=1:64
-    subplot(8,8,ia);plot([1:l1],D(:,ia),'k','linewidth',2);
-
-    if ia==1
-        ylim([-0.5,0.5]);
-    end
-    set(gca,'Linewidth',2.0,'Fontsize',10);
-    ytickformat('%.1f');
-    if ismember(ia,1:8:64)
-        ylabel('Amplitude','Fontsize',10);
-    else
-        set(gca,'yticklabel',[]);
-
-    end
-
-    if ismember(ia,57:64)
-        xlabel('Sample NO','Fontsize',10);
-    else
-        set(gca,'xticklabel',[]);
-    end
-    axis off;
-    xlim([1,l1]);
-end
-annotation(gcf,'rectangle',[0.126 0.101 0.782 0.834],'linewidth',2);
+% figure('units','normalized','Position',[0.2 0.4 1 0.8],'color','w');
+% for ia=1:64
+%     subplot(8,8,ia);plot([1:l1],D(:,ia),'k','linewidth',2);
+% 
+%     if ia==1
+%         ylim([-0.5,0.5]);
+%     end
+%     set(gca,'Linewidth',2.0,'Fontsize',10);
+%     ytickformat('%.1f');
+%     if ismember(ia,1:8:64)
+%         ylabel('Amplitude','Fontsize',10);
+%     else
+%         set(gca,'yticklabel',[]);
+% 
+%     end
+% 
+%     if ismember(ia,57:64)
+%         xlabel('Sample NO','Fontsize',10);
+%     else
+%         set(gca,'xticklabel',[]);
+%     end
+%     axis off;
+%     xlim([1,l1]);
+% end
+% annotation(gcf,'rectangle',[0.126 0.101 0.782 0.834],'linewidth',2);
 % print(gcf,'-depsc','-r300','syn2_atom0_new.eps');
 
-figure('units','normalized','Position',[0.2 0.4 1 0.8],'color','w');
-for ia=1:64
-    subplot(8,8,ia);plot([1:l1],Dksvd(:,ia),'k','linewidth',2);
-
-    if ia==1
-        ylim([-0.5,0.5]);
-    end
-    if ismember(ia,[1,2,3,4,5,6,7,8,9,10,12,13,15,16,22,25,38,44,47,51])
-        subplot(8,8,ia);plot([1:l1],Dksvd(:,ia),'r','linewidth',2);
-    end
-    set(gca,'Linewidth',2.0,'Fontsize',10);
-    ytickformat('%.1f');
-    if ismember(ia,1:8:64)
-        ylabel('Amplitude','Fontsize',10);
-    else
-        set(gca,'yticklabel',[]);
-
-    end
-
-    if ismember(ia,57:64)
-        xlabel('Sample NO','Fontsize',10);
-    else
-        set(gca,'xticklabel',[]);
-    end
-    axis off;
-    xlim([1,l1]);
-end
-annotation(gcf,'rectangle',[0.126 0.101 0.782 0.834],'linewidth',2);
+% figure('units','normalized','Position',[0.2 0.4 1 0.8],'color','w');
+% for ia=1:64
+%     subplot(8,8,ia);plot([1:l1],Dksvd(:,ia),'k','linewidth',2);
+% 
+%     if ia==1
+%         ylim([-0.5,0.5]);
+%     end
+%     if ismember(ia,[1,2,3,4,5,6,7,8,9,10,12,13,15,16,22,25,38,44,47,51])
+%         subplot(8,8,ia);plot([1:l1],Dksvd(:,ia),'r','linewidth',2);
+%     end
+%     set(gca,'Linewidth',2.0,'Fontsize',10);
+%     ytickformat('%.1f');
+%     if ismember(ia,1:8:64)
+%         ylabel('Amplitude','Fontsize',10);
+%     else
+%         set(gca,'yticklabel',[]);
+% 
+%     end
+% 
+%     if ismember(ia,57:64)
+%         xlabel('Sample NO','Fontsize',10);
+%     else
+%         set(gca,'xticklabel',[]);
+%     end
+%     axis off;
+%     xlim([1,l1]);
+% end
+% annotation(gcf,'rectangle',[0.126 0.101 0.782 0.834],'linewidth',2);
 % print(gcf,'-depsc','-r300','syn2_atom1_new.eps');
 
-figure('units','normalized','Position',[0.2 0.4 1 0.8],'color','w');
-for ia=1:64
-    subplot(8,8,ia);plot([1:l1],Dsgk(:,ia),'k','linewidth',2);
-
-    if ia==1
-        ylim([-0.5,0.5]);
-    end
-    if ismember(ia,[2,3,4,5,6,7,8,9,10,46,58])
-        subplot(8,8,ia);plot([1:l1],Dsgk(:,ia),'r','linewidth',2);
-    end
-    set(gca,'Linewidth',2.0,'Fontsize',10);
-    ytickformat('%.1f');
-    if ismember(ia,1:8:64)
-        ylabel('Amplitude','Fontsize',10);
-    else
-        set(gca,'yticklabel',[]);
-
-    end
-
-    if ismember(ia,57:64)
-        xlabel('Sample NO','Fontsize',10);
-    else
-        set(gca,'xticklabel',[]);
-    end
-    axis off;
-    xlim([1,l1]);
-end
-annotation(gcf,'rectangle',[0.126 0.101 0.782 0.834],'linewidth',2);
+% figure('units','normalized','Position',[0.2 0.4 1 0.8],'color','w');
+% for ia=1:64
+%     subplot(8,8,ia);plot([1:l1],Dsgk(:,ia),'k','linewidth',2);
+% 
+%     if ia==1
+%         ylim([-0.5,0.5]);
+%     end
+%     if ismember(ia,[2,3,4,5,6,7,8,9,10,46,58])
+%         subplot(8,8,ia);plot([1:l1],Dsgk(:,ia),'r','linewidth',2);
+%     end
+%     set(gca,'Linewidth',2.0,'Fontsize',10);
+%     ytickformat('%.1f');
+%     if ismember(ia,1:8:64)
+%         ylabel('Amplitude','Fontsize',10);
+%     else
+%         set(gca,'yticklabel',[]);
+% 
+%     end
+% 
+%     if ismember(ia,57:64)
+%         xlabel('Sample NO','Fontsize',10);
+%     else
+%         set(gca,'xticklabel',[]);
+%     end
+%     axis off;
+%     xlim([1,l1]);
+% end
+% annotation(gcf,'rectangle',[0.126 0.101 0.782 0.834],'linewidth',2);
 % print(gcf,'-depsc','-r300','syn2_atom2_new.eps');
 
 %% combined
-
 
 % save fig6.mat
 % load fig6.mat
