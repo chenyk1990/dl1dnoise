@@ -40,7 +40,7 @@ clip=0.2;
 dc=[rvz,rvx,rvy];
 randn('state',20202122);
 dn=dc+0.02*randn(size(dc));
-figure;dl_imagesc([dc,dn]);
+% figure;dl_imagesc([dc,dn]);
 %%
 
 %% patch size l1*l2
