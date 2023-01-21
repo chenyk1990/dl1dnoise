@@ -69,7 +69,7 @@ mm=[
  0,0,0];
 M=[0,0,0,1,0,0];
 Mw = 5.0;
-focalmech(M,0,0,Mw,'k','xyz');
+dl_focalmech(M,0,0,Mw,'k','xyz');
 axis equal
 axis off
 % scatter(x,y);box on;set(gca,'xticklabel',[]);ylabel('North (m)');set(gca,'Linewidth',1.5,'Fontsize',12);
