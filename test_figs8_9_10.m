@@ -36,10 +36,10 @@ D=dct;
 % DCT=kron(dct,dct);%2D DCT dictionary (64,256)
 
 %% plot the first 64 atoms
-figure;
-for ia=1:16
-    subplot(4,4,ia);plot(dct(:,ia));
-end
+% figure;
+% for ia=1:16
+%     subplot(4,4,ia);plot(dct(:,ia));
+% end
 
 
 %% decompose the image into patches:

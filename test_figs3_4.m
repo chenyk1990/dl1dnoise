@@ -29,15 +29,15 @@ rvy=rvy*1000000000;
 t=[0:350]*0.001+0.15;
 x=[1:12];
 clip=0.2;
-figure('units','normalized','Position',[0.2 0.4 0.5, 0.4],'color','w');
-subplot(1,6,1:2);dl_wigb(rvz,1,x,t,clip);xlabel('Channel');title('Vz');ylabel('Time (s)');
-subplot(1,6,3:4);dl_wigb(rvx,1,x,t,clip);xlabel('Channel');title('Vx');
-subplot(1,6,5:6);dl_wigb(rvy,1,x,t,clip);xlabel('Channel');title('Vy');
+% figure('units','normalized','Position',[0.2 0.4 0.5, 0.4],'color','w');
+% subplot(1,6,1:2);dl_wigb(rvz,1,x,t,clip);xlabel('Channel');title('Vz');ylabel('Time (s)');
+% subplot(1,6,3:4);dl_wigb(rvx,1,x,t,clip);xlabel('Channel');title('Vx');
+% subplot(1,6,5:6);dl_wigb(rvy,1,x,t,clip);xlabel('Channel');title('Vy');
 
 dc=[rvz,rvx,rvy];
 randn('state',20202122);
 dn=dc+0.02*randn(size(dc));
-figure;dl_imagesc([dc,dn]);
+% figure;dl_imagesc([dc,dn]);
 %%
 
 %% patch size l1*l2
@@ -57,10 +57,10 @@ D=dct;
 % DCT=kron(dct,dct);%2D DCT dictionary (64,256)
 
 %% plot the first 64 atoms
-figure;
-for ia=1:16
-    subplot(4,4,ia);plot(dct(:,ia));
-end
+% figure;
+% for ia=1:16
+%     subplot(4,4,ia);plot(dct(:,ia));
+% end
 
 %% decompose the image into patches:
 X=dl_patch(dn,1,l1,1,l1/2,1);
@@ -82,14 +82,14 @@ X2=D*G;
 
 [n1,n2]=size(dn);
 d2=dl_patch_inv(X2,1,n1,n2,l1,1,l1/2,1);
-figure;dl_imagesc([dn,d2,dn-d2]);
+% figure;dl_imagesc([dn,d2,dn-d2]);
 
-figure('units','normalized');
-imagesc(G);colormap(jet);colorbar;caxis([-0.5,0.5]);%colorbar;
-ylabel('Atom NO','Fontsize',16);
-xlabel('Patch NO','Fontsize',16);
-title('Coefficients Matrix','Fontsize',16);
-set(gca,'Linewidth',1.5,'Fontsize',16);
+% figure('units','normalized');
+% imagesc(G);colormap(jet);colorbar;caxis([-0.5,0.5]);%colorbar;
+% ylabel('Atom NO','Fontsize',16);
+% xlabel('Patch NO','Fontsize',16);
+% title('Coefficients Matrix','Fontsize',16);
+% set(gca,'Linewidth',1.5,'Fontsize',16);
 % print(gcf,'-depsc','-r300','real_G.eps');
 
 
@@ -106,7 +106,7 @@ Gksvd0=Gksvd;
 Gksvd=dl_pthresh(Gksvd0,'ph',ph);
 X1=Dksvd*Gksvd;
 d1=dl_patch_inv(X1,1,n1,n2,l1,1,l1/2,1);
-figure;dl_imagesc([dn,d1,dn-d1]);
+% figure;dl_imagesc([dn,d1,dn-d1]);
 
 % figure('units','normalized','Position',[0.2 0.4 0.8, 0.8],'color','w');
 % for ia=1:64
@@ -125,7 +125,8 @@ Gsgk0=Gsgk;
 Gsgk=dl_pthresh(Gsgk0,'ph',ph);
 X11=Dsgk*Gsgk;
 d11=dl_patch_inv(X11,1,n1,n2,l1,1,l1/2,1);
-figure;dl_imagesc([dn,d11,dn-d11]);dl_snr(dc,d11)
+% figure;dl_imagesc([dn,d11,dn-d11]);
+dl_snr(dc,d11)
 
 % figure('units','normalized','Position',[0.2 0.4 1 0.8]);
 % for ia=1:64
@@ -213,14 +214,14 @@ figure;dl_imagesc([dn,d11,dn-d11]);dl_snr(dc,d11)
 
 
 
-figure('units','normalized','Position',[0.2 0.4 0.5, 0.8],'color','w');
-subplot(2,6,1:2);dl_wigb(rvz,1,x,t,clip);title('Vz');ylabel('Time (s)');%xlabel('Channel');
-subplot(2,6,3:4);dl_wigb(rvx,1,x,t,clip);title('Vx');set(gca,'ytick',[]);%xlabel('Channel');
-subplot(2,6,5:6);dl_wigb(rvy,1,x,t,clip);title('Vy');set(gca,'ytick',[]);%xlabel('Channel');
-
-subplot(2,6,7:8);dl_wigb(dn(:,1:12),1,x,t,clip);xlabel('Channel');title('Vz');ylabel('Time (s)');
-subplot(2,6,9:10);dl_wigb(dn(:,13:24),1,x,t,clip);xlabel('Channel');title('Vx');set(gca,'ytick',[])
-subplot(2,6,11:12);dl_wigb(dn(:,25:36),1,x,t,clip);xlabel('Channel');title('Vy');set(gca,'ytick',[])
+% figure('units','normalized','Position',[0.2 0.4 0.5, 0.8],'color','w');
+% subplot(2,6,1:2);dl_wigb(rvz,1,x,t,clip);title('Vz');ylabel('Time (s)');%xlabel('Channel');
+% subplot(2,6,3:4);dl_wigb(rvx,1,x,t,clip);title('Vx');set(gca,'ytick',[]);%xlabel('Channel');
+% subplot(2,6,5:6);dl_wigb(rvy,1,x,t,clip);title('Vy');set(gca,'ytick',[]);%xlabel('Channel');
+% 
+% subplot(2,6,7:8);dl_wigb(dn(:,1:12),1,x,t,clip);xlabel('Channel');title('Vz');ylabel('Time (s)');
+% subplot(2,6,9:10);dl_wigb(dn(:,13:24),1,x,t,clip);xlabel('Channel');title('Vx');set(gca,'ytick',[])
+% subplot(2,6,11:12);dl_wigb(dn(:,25:36),1,x,t,clip);xlabel('Channel');title('Vy');set(gca,'ytick',[])
 % print(gcf,'-depsc','-r300','fig2.eps');
 
 tic
