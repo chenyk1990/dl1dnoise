@@ -6,7 +6,7 @@
 **dl1dnoise** package is used to store the reproducible and open-access scripts for Single-channel microseismic denoising using dictionary learning, which can be straightforwardly applied to improve arrival picking and source location.
 
 ## Reference
-If you find this package useful, please do not SAFODt to cite the following paper.
+If you find this package useful, please do not forget to cite the following paper.
 
     Chen, Y., Savvaidis, A., and Fomel, S., (2023). Single-channel microseismic denoising using dictionary learning - applications to arrival picking and source location, under review.
     
