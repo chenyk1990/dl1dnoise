@@ -445,33 +445,6 @@ print(gcf,'-dpng','-r300','fig9.png');
 
 
 %% fig10
-figure('units','normalized','Position',[0.2 0.4 1 0.8]);
-for ia=1:64
-    subplot(8,8,ia);plot([1:l1],D(:,ia),'k','linewidth',2);
-    
-    if ia==1
-        ylim([-0.5,0.5]);
-    end
-    set(gca,'Linewidth',2.0,'Fontsize',10);
-    ytickformat('%.1f');
-    if ismember(ia,1:8:64)
-        ylabel('Amplitude','Fontsize',10);
-    else
-        set(gca,'yticklabel',[]);
-        
-    end
-    
-    if ismember(ia,57:64)
-        xlabel('Sample NO','Fontsize',10);
-    else
-        set(gca,'xticklabel',[]);
-    end
-    axis off;
-    xlim([1,l1]);
-end
-annotation(gcf,'rectangle',[0.126 0.101 0.782 0.834],'linewidth',2);
-print(gcf,'-depsc','-r300','real_atom0_new.eps');
-
 figure('units','normalized','Position',[0.2 0.4 0.5 1]);
 for ia=1:64
     subplot(16,8,ia);plot([1:l1],Dksvd(:,ia),'k','linewidth',2);
