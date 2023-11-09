@@ -8,7 +8,7 @@
 ## Reference
 If you find this package useful, please do not forget to cite the following paper.
 
-    Chen, Y., Savvaidis, A., and Fomel, S., (2023). Dictionary learning for single-channel passive seismic denoising, under review.
+    Chen, Y., Savvaidis, A., and Fomel, S., (2023). Dictionary learning for single-channel passive seismic denoising, Seismological Research Letters, 94, 2840-2851.
     
 BibTeX:
 	
@@ -17,10 +17,11 @@ BibTeX:
 	  title = {Dictionary learning for single-channel passive seismic denoising},
 	  journal={TBD},
 	  year=2023,
-	  volume=X,
-	  issue=X,
-	  pages={under review},
-	  doi={XXX},
+	  volume={94},
+	  number={6},
+	  issue={6},
+	  pages={2840-2851},
+	  doi={10.1785/0220230169},
 	}
 
 -----------
@@ -43,7 +44,7 @@ Using the latest version
     
 -----------
 ## Examples
-    The "main" directory contains all runable scripts test_figNO.m to reproduce all figures in the paper.
+    The "main" directory contains all runnable scripts test_figNO.m to reproduce all figures in the paper.
  
 -----------
 ## Dependence Packages
@@ -56,7 +57,7 @@ Using the latest version
 
 -----------
 ## Contact
-    Regarding any questions, bugs, developments, collaborations, please contact  
+    Regarding any questions, bugs, developments, or collaborations, please contact  
     Yangkang Chen
     chenyk2016@gmail.com
 
